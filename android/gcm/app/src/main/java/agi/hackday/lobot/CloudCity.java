@@ -1,7 +1,20 @@
 package agi.hackday.lobot;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.res.Resources;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -11,11 +24,11 @@ import com.android.volley.toolbox.StringRequest;
 /**
  * Created by ltrempe on 2/25/16.
  */
-public class CloudCity {
+public class CloudCity extends Fragment {
 
     public static final String TAG = "CloudCity";
 
-    private static final String REGISTRATION_STATUS = "registrationStatus";
+    private static final String PREFERENCE_REGISTRATION_STATUS = "preferenceRegistrationStatus";
 
     public static final String REGIRATION_COMPLETE = "registrationComplete";
 
@@ -23,7 +36,7 @@ public class CloudCity {
 
     public enum Status {
         CONNECTED,
-        DISCONNECTED;
+        DISCONNECTED
     }
 
     public enum Message {
@@ -43,7 +56,6 @@ public class CloudCity {
         }
     }
 
-
     public static int imageResourceIdForMessage(int messageId) {
         int id = R.drawable.lobot_icon;
         for (Message message : Message.values()) {
@@ -56,37 +68,135 @@ public class CloudCity {
         return id;
     }
 
+    private ViewGroup mRootView;
 
-    public interface Listener {
-        void onSuccess();
+    private TextView mUserNameTextView;
 
-        void onError();
+    private ImageView mStatusConnected;
+
+    private ImageView mStatusDisconnected;
+
+    public CloudCity() {
     }
 
-    private final Context mContext;
-
-    public CloudCity(Context context) {
-        mContext = context;
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        super.onCreateView(inflater, container, savedInstanceState);
+        mRootView = (ViewGroup) inflater.inflate(R.layout.fragment_cloud_city, container, false);
+        mStatusConnected = (ImageView) mRootView.findViewById(R.id.status_connected);
+        mStatusDisconnected = (ImageView) mRootView.findViewById(R.id.status_disconnected);
+        mUserNameTextView = (TextView) mRootView.findViewById(R.id.main_user_name);
+        return mRootView;
     }
 
-    public void register(String token, final Listener listener) {
-        final RequestQueueSingleton requestQueue = RequestQueueSingleton.getInstance(mContext);
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (hasNetworkConnection()) {
+            clearBadges();
+        } else {
+            updateStatus(Status.DISCONNECTED);
+        }
+    }
 
-        final String url = UrlConfig.getRegistrationUrl(token).toString();
-        Log.i(TAG, "url " + url);
+    public void register(String token) {
+        if (!hasNetworkConnection()) {
+            updateStatus(Status.DISCONNECTED);
+            return;
+        }
+        if (isRegistered()) {
+            Log.i(TAG, "Already registered with cloud.");
+            updateStatus(Status.CONNECTED);
+        } else {
+            final RequestQueueSingleton requestQueue = RequestQueueSingleton.getInstance(getContext());
+            final String url = UrlConfig.getRegistrationUrl(token).toString();
+            Log.i(TAG, "Requesting " + url);
+            final StringRequest stringRequest =
+                    new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            Log.e(TAG, "Registration success: " + response);
+                            saveRegistrationStatus(Status.CONNECTED);
+                            updateStatus(Status.CONNECTED);
+                        }
+                    }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.e(TAG, "ERROR: registration " + error);
+                            saveRegistrationStatus(Status.DISCONNECTED);
+                            updateStatus(Status.DISCONNECTED);
+                        }
+                    });
+            requestQueue.addToRequestQueue(stringRequest);
+        }
+    }
+
+    private void updateStatus(Status status) {
+        final Resources resources = getResources();
+        mUserNameTextView.setText("Not connected to cloud city");
+        if (status == Status.CONNECTED) {
+            // lock edit text
+            // save user name
+            mUserNameTextView.setText("Connected to cloud city");
+            mUserNameTextView.setEnabled(false);
+            mUserNameTextView.setClickable(false);
+            mStatusConnected.setColorFilter(resources.getColor(R.color.green));
+            mStatusDisconnected.setColorFilter(resources.getColor(R.color.gray));
+        } else {
+            mStatusDisconnected.setColorFilter(resources.getColor(R.color.red));
+            mStatusConnected.setColorFilter(resources.getColor(R.color.gray));
+        }
+    }
+
+    public void clearBadges() {
+        if (!isRegistered()) {
+            return;
+        }
+        final RequestQueueSingleton requestQueue = RequestQueueSingleton.getInstance(getContext());
+        final String url = UrlConfig.getClearBadgesUrl().toString();
+        Log.i(TAG, "Requesting " + url);
         final StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                Log.e(TAG, "SUCCESS: " + response);
-                listener.onSuccess();
+                Log.i(TAG, "Badges cleared. " + response);
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.e(TAG, "ERROR: " + error);
-                listener.onError();
+                Log.e(TAG, "ERROR: Badges not cleared." + error);
             }
         });
         requestQueue.addToRequestQueue(stringRequest);
+    }
+
+    private boolean isRegistered() {
+        boolean registered = false;
+
+        final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+
+        if (sharedPreferences.contains(PREFERENCE_REGISTRATION_STATUS)) {
+            // TODO add expiration
+            registered = sharedPreferences.getBoolean(PREFERENCE_REGISTRATION_STATUS, false);
+        }
+        Log.e(TAG, "Registration status " + registered);
+        return registered;
+    }
+
+    private void saveRegistrationStatus(Status status) {
+        final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        Log.e(TAG, "Status : " + status);
+        if (status == Status.CONNECTED) {
+            sharedPreferences.edit().putBoolean(PREFERENCE_REGISTRATION_STATUS, true).commit();
+        } else {
+            sharedPreferences.edit().remove(PREFERENCE_REGISTRATION_STATUS);
+        }
+    }
+
+    private boolean hasNetworkConnection() {
+        final ConnectivityManager connectivityManager =
+                (ConnectivityManager) getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        return networkInfo != null && (networkInfo.isConnected());
     }
 }

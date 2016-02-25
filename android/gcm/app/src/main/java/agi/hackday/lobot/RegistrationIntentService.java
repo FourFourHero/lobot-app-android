@@ -23,9 +23,6 @@ import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import agi.hackday.lobot.CloudCity.Status;
-import agi.hackday.lobot.Lobot.Listener;
-
 import com.google.android.gms.gcm.GcmPubSub;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.iid.InstanceID;
@@ -44,6 +41,7 @@ public class RegistrationIntentService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String token = "";
 
         try {
             // [START register_for_gcm]
@@ -53,12 +51,10 @@ public class RegistrationIntentService extends IntentService {
             // See https://developers.google.com/cloud-messaging/android/start for details on this file.
             // [START get_token]
             InstanceID instanceID = InstanceID.getInstance(this);
-            String token = instanceID.getToken(getString(R.string.gcm_defaultSenderId),
+            token = instanceID.getToken(getString(R.string.gcm_defaultSenderId),
                     GoogleCloudMessaging.INSTANCE_ID_SCOPE, null);
             // [END get_token]
             Log.i(TAG, "GCM Registration Token: " + token);
-
-            registerWithCloudCity(token);
 
             // Subscribe to topic channels
             subscribeTopics(token);
@@ -76,35 +72,7 @@ public class RegistrationIntentService extends IntentService {
         }
         // Notify UI that registration has completed, so the progress indicator can be hidden.
         Intent registrationComplete = new Intent(QuickstartPreferences.REGISTRATION_COMPLETE);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(registrationComplete);
-    }
-
-    /**
-     * Persist registration to third-party servers.
-     *
-     * Modify this method to associate the user's GCM registration token with any server-side account
-     * maintained by your application.
-     *
-     * @param token The new token.
-     */
-    private void registerWithCloudCity(String token) {
-        final Lobot lobot = new Lobot(getApplicationContext());
-        lobot.register(token, new Listener() {
-            @Override
-            public void onSuccess() {
-                onCloudCityRegistrationComplete(Status.CONNECTED);
-            }
-
-            @Override
-            public void onError() {
-                onCloudCityRegistrationComplete(Status.DISCONNECTED);
-            }
-        });
-    }
-
-    private void onCloudCityRegistrationComplete(Status status){
-        Intent registrationComplete = new Intent(CloudCity.REGIRATION_COMPLETE);
-        registrationComplete.putExtra(CloudCity.EXTRA_REGISTRATION_STATUS, status);
+        registrationComplete.putExtra(QuickstartPreferences.REGISTRATION_TOKEN, token);
         LocalBroadcastManager.getInstance(this).sendBroadcast(registrationComplete);
     }
 

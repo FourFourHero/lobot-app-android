@@ -21,24 +21,10 @@
             android:layout_height="wrap_content"
             android:id="@+id/registrationProgressBar"/>
 
-    <EditText android:text="@string/enter_user_name"
-              android:layout_width="match_parent"
-              android:layout_height="wrap_content"
-              android:id="@+id/main_user_name"
-              android:textAppearance="?android:attr/textAppearanceMedium"/>
-    <LinearLayout android:layout_width="wrap_content"
-                  android:padding="10dp"
-                  android:orientation="horizontal"
-                  android:layout_height="wrap_content">
-        <ImageView android:layout_width="wrap_content"
-                   android:src="@drawable/status"
-                   android:layout_height="wrap_content"/>
-        <ImageView android:layout_width="wrap_content"
-                   android:src="@drawable/status"
-                   android:layout_height="wrap_content"/>
-        <ImageView android:layout_width="wrap_content"
-                   android:src="@drawable/status"
-                   android:layout_height="wrap_content"/>
-
-    </LinearLayout>
+    <fragment
+            android:id="@+id/cloud_city"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:name="agi.hackday.lobot.CloudCity"
+            />
 </LinearLayout>

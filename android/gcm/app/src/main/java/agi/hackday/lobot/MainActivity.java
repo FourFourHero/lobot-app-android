@@ -29,8 +29,6 @@ import android.util.Log;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import agi.hackday.lobot.CloudCity.Status;
-
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 
@@ -40,15 +38,16 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
     private BroadcastReceiver mRegistrationBroadcastReceiver;
-    private BroadcastReceiver mCloudCityReceiver;
     private ProgressBar mRegistrationProgressBar;
+    private CloudCity mCloudCity;
     private TextView mInformationTextView;
-    private TextView mUserNameTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mCloudCity = (CloudCity) getSupportFragmentManager().findFragmentById(R.id.cloud_city);
 
         mRegistrationProgressBar = (ProgressBar) findViewById(R.id.registrationProgressBar);
         mRegistrationBroadcastReceiver = new BroadcastReceiver() {
@@ -59,33 +58,18 @@ public class MainActivity extends AppCompatActivity {
                         PreferenceManager.getDefaultSharedPreferences(context);
                 boolean sentToken = sharedPreferences
                         .getBoolean(QuickstartPreferences.SENT_TOKEN_TO_SERVER, false);
+
                 if (sentToken) {
-                    // GREEN CONNECTED
                     mInformationTextView.setText(getString(R.string.gcm_send_message));
                 } else {
                     mInformationTextView.setText(getString(R.string.token_error_message));
                 }
-            }
-        };
-        mCloudCityReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                final Bundle extras = intent.getExtras();
-                mUserNameTextView.setText("Not connected to cloud city");
-                if (extras != null && extras.containsKey(CloudCity.EXTRA_REGISTRATION_STATUS)) {
-                    Status status = (Status) extras.getSerializable(CloudCity.EXTRA_REGISTRATION_STATUS);
-                    if (status == Status.CONNECTED) {
-                        // lock edit text
-                        // save user name
-                        // set green light
-                        mUserNameTextView.setText("Connected to cloud city");
-                    }
-                }
 
+                final String token = intent.getStringExtra(QuickstartPreferences.REGISTRATION_TOKEN);
+                mCloudCity.register(token);
             }
         };
         mInformationTextView = (TextView) findViewById(R.id.informationTextView);
-        mUserNameTextView = (TextView) findViewById(R.id.main_user_name);
 
         if (checkPlayServices()) {
             // Start IntentService to register this application with GCM.
@@ -97,16 +81,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        mCloudCity.clearBadges();
         LocalBroadcastManager.getInstance(this).registerReceiver(mRegistrationBroadcastReceiver,
                 new IntentFilter(QuickstartPreferences.REGISTRATION_COMPLETE));
-        LocalBroadcastManager.getInstance(this).registerReceiver(mCloudCityReceiver,
-                new IntentFilter(CloudCity.REGIRATION_COMPLETE));
     }
 
     @Override
     protected void onPause() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mRegistrationBroadcastReceiver);
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mCloudCityReceiver);
         super.onPause();
     }
 
