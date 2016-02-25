@@ -15,7 +15,7 @@ public class UrlConfig {
 
     public static final Uri getRegistrationUrl(String token) {
         return Uri.parse(REGISTRATION).buildUpon()
-                .appendQueryParameter("os", "a")
+                .appendQueryParameter("os", "g")
                 .appendQueryParameter("username", "ltrempe")
                 .appendQueryParameter("registration_id", token)
                 .build();

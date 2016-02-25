@@ -23,6 +23,9 @@ import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import agi.hackday.lobot.CloudCity.Status;
+import agi.hackday.lobot.Lobot.Listener;
+
 import com.google.android.gms.gcm.GcmPubSub;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.iid.InstanceID;
@@ -55,8 +58,7 @@ public class RegistrationIntentService extends IntentService {
             // [END get_token]
             Log.i(TAG, "GCM Registration Token: " + token);
 
-            // TODO: Implement this method to send any registration to your app's servers.
-            sendRegistrationToServer(token);
+            registerWithCloudCity(token);
 
             // Subscribe to topic channels
             subscribeTopics(token);
@@ -85,8 +87,25 @@ public class RegistrationIntentService extends IntentService {
      *
      * @param token The new token.
      */
-    private void sendRegistrationToServer(String token) {
-        Lobot.register(getApplicationContext(), token);
+    private void registerWithCloudCity(String token) {
+        final Lobot lobot = new Lobot(getApplicationContext());
+        lobot.register(token, new Listener() {
+            @Override
+            public void onSuccess() {
+                onCloudCityRegistrationComplete(Status.CONNECTED);
+            }
+
+            @Override
+            public void onError() {
+                onCloudCityRegistrationComplete(Status.DISCONNECTED);
+            }
+        });
+    }
+
+    private void onCloudCityRegistrationComplete(Status status){
+        Intent registrationComplete = new Intent(CloudCity.REGIRATION_COMPLETE);
+        registrationComplete.putExtra(CloudCity.EXTRA_REGISTRATION_STATUS, status);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(registrationComplete);
     }
 
     /**

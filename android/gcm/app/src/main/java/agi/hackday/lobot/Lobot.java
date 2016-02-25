@@ -13,24 +13,42 @@ import com.android.volley.toolbox.StringRequest;
  */
 public class Lobot {
 
+    private static final String REGISTRATION_STATUS = "registrationStatus";
+
+    public interface Listener {
+        void onSuccess();
+        void onError();
+    }
+
+    private final Context mContext;
+
+    public Lobot(Context context) {
+        mContext = context;
+    }
+
     private static String TAG = "Lobot";
 
-    public static void register(Context context, String token) {
-        final RequestQueueSingleton requestQueue = RequestQueueSingleton.getInstance(context);
+    public void register(String token, final Listener listener) {
+        final RequestQueueSingleton requestQueue = RequestQueueSingleton.getInstance(mContext);
 
+        final String url = UrlConfig.getRegistrationUrl(token).toString();
+        Log.i(TAG, "url " + url);
         final StringRequest stringRequest =
-                new StringRequest(Request.Method.GET, UrlConfig.getRegistrationUrl(token).toString(),
+                new StringRequest(Request.Method.GET, url,
                         new Response.Listener<String>() {
                             @Override
                             public void onResponse(String response) {
                                 Log.e(TAG, "SUCCESS: " + response);
+                                listener.onSuccess();
                             }
                         }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         Log.e(TAG, "ERROR: " + error);
+                        listener.onError();
                     }
                 });
         requestQueue.addToRequestQueue(stringRequest);
     }
+
 }
