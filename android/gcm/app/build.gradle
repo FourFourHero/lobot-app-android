@@ -18,9 +18,27 @@ android {
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
+    signingConfigs {
+        release {
+            def props = new Properties()
+            def propertiesHome = "${System.env.HOME}/.android/"
+            def propertiesFileName = propertiesHome + "release.properties"
+
+            File config = file(propertiesFileName)
+            if (config.exists()) {
+                props.load(new FileInputStream(config))
+                def keyStore = propertiesHome + props.keyStore
+                storeFile file(keyStore)
+                storePassword props.keyStorePassword
+                keyAlias props.keyAlias
+                keyPassword props.keyAliasPassword
+            }
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
+            signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }

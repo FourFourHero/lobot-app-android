@@ -245,12 +245,12 @@ public class CloudCity extends Fragment {
         mStatusDisconnected.setColorFilter(resources.getColor(R.color.status_none));
         mStatusInProgress.setColorFilter(resources.getColor(R.color.status_progress));
         mInformationTextView.setText(getString(R.string.cloud_city_in_progress));
-        mRegistrationForm.setVisibility(View.VISIBLE);
+        mRegistrationForm.setVisibility(View.GONE);
         //mRegistrationProgressBar.setVisibility(View.VISIBLE);
     }
 
     private void showConnectionState(Resources resources) {
-        mInformationTextView.setText(String.format("Connected to Cloud City as %s.", getUserName()));
+        mInformationTextView.setText(String.format("Connected as %s.", getUserName()));
         mRegistrationForm.setVisibility(View.GONE);
         mStatusConnected.setColorFilter(resources.getColor(R.color.status_ok));
         mStatusDisconnected.setColorFilter(resources.getColor(R.color.status_none));
