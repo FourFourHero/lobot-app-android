@@ -27,6 +27,7 @@ public class LaunchActivity extends Activity {
                 final Intent intent = new Intent("agi.hackday.lobot.view_home");
                 Log.e("Splash", "Start Activity");
                 startActivity(intent);
+                finish();
             }
         }.start();
     }

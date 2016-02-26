@@ -27,6 +27,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -64,11 +65,12 @@ public class CloudCity extends Fragment {
     }
 
     public enum Message {
-        SOS(1, R.drawable.lobot_icon),
-        GROWTH(2, R.drawable.lobot_icon),
-        HANDS_DOWN(3, R.drawable.lobot_icon),
+        SOS(1, R.drawable.sos_icon),
+        GROWTH(2, R.drawable.growth_icon),
+        HANDS_DOWN(3, R.drawable.hand_icon),
         HEART_ATTACK(4, R.drawable.lobot_icon),
-        ORDER_45(5, R.drawable.lobot_icon);
+        ORDER_45(5, R.drawable.order_icon),
+        FIRED(6, R.drawable.fired_icon);
 
         public final int imageResId;
 
@@ -94,7 +96,7 @@ public class CloudCity extends Fragment {
 
     private ViewGroup mRootView;
 
-    private TextView mUserNameTextView;
+    private EditText mUserNameTextView;
 
     private ImageView mStatusConnected;
 
@@ -118,7 +120,7 @@ public class CloudCity extends Fragment {
     public View onCreateView(final LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
         mRootView = (ViewGroup) inflater.inflate(R.layout.fragment_cloud_city, container, false);
-        mUserNameTextView = (TextView) mRootView.findViewById(R.id.main_user_name);
+        mUserNameTextView = (EditText) mRootView.findViewById(R.id.user_name);
         mInformationTextView = (TextView) mRootView.findViewById(R.id.informationTextView);
         mRegistrationProgressBar = (ProgressBar) mRootView.findViewById(R.id.registrationProgressBar);
         mRegistrationForm = mRootView.findViewById(R.id.cloud_city_registration_form);
@@ -195,12 +197,13 @@ public class CloudCity extends Fragment {
             updateStatus(Status.DISCONNECTED);
             return;
         }
-        mRegistrationProgressBar.setVisibility(ProgressBar.VISIBLE);
+        //mRegistrationProgressBar.setVisibility(ProgressBar.VISIBLE);
         if (isRegistered()) {
             Log.i(TAG, "Already registered with cloud.");
             updateStatus(Status.CONNECTED);
         } else {
             final CharSequence userName = mUserNameTextView.getText();
+            Log.e(TAG, "userName: " + userName);
             final String url = UrlConfig.getRegistrationUrl(userName, token).toString();
             Log.i(TAG, "Requesting " + url);
             final StringRequest stringRequest =
@@ -243,7 +246,7 @@ public class CloudCity extends Fragment {
         mStatusInProgress.setColorFilter(resources.getColor(R.color.status_progress));
         mInformationTextView.setText(getString(R.string.cloud_city_in_progress));
         mRegistrationForm.setVisibility(View.VISIBLE);
-        mRegistrationProgressBar.setVisibility(View.VISIBLE);
+        //mRegistrationProgressBar.setVisibility(View.VISIBLE);
     }
 
     private void showConnectionState(Resources resources) {
@@ -280,7 +283,7 @@ public class CloudCity extends Fragment {
         final CharSequence userName = mUserNameTextView.getText();
         final String url = UrlConfig.getClearBadgesUrl(userName).toString();
         Log.i(TAG, "Requesting " + url);
-        mRegistrationProgressBar.setVisibility(ProgressBar.VISIBLE);
+        mRegistrationProgressBar.setVisibility(ProgressBar.GONE);
         final StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -366,11 +369,12 @@ public class CloudCity extends Fragment {
 
     public void showInAppMessage(String message, int id) {
         Log.e(TAG, "RECEIVED " + message + " " + id);
+        final int icon = imageResourceIdForMessage(id);
         if (!TextUtils.isEmpty(message)) {
-            new AlertDialog.Builder(getContext()).setTitle("Lobot").setMessage(message).setPositiveButton("Ok", null)
-                                                 .create().show();
+            new AlertDialog.Builder(getContext()).setTitle("Lobot").setIcon(icon).setMessage(message)
+                                                 .setPositiveButton("Ok", null).create().show();
         }
-
+        clearBadges();
     }
 
     private void showNoNetworkAlert() {

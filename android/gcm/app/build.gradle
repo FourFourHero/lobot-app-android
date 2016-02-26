@@ -12,7 +12,7 @@ android {
     defaultConfig {
         applicationId "agi.hackday.lobot"
         minSdkVersion 12
-        targetSdkVersion 23
+        targetSdkVersion 22
         versionCode 1
         versionName "1.0"
 

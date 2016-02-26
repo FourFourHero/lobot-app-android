@@ -47,7 +47,7 @@
                     android:layout_gravity="center"
                     card_view:contentPadding="10dp"
                     android:layout_width="match_parent"
-                    android:layout_height="150dp"
+                    android:layout_height="140dp"
                     android:layout_marginTop="10dp"
                     card_view:cardCornerRadius="4dp">
 
@@ -70,7 +70,7 @@
                               android:layout_width="match_parent"
                               android:inputType="text"
                               android:layout_height="wrap_content"
-                              android:id="@+id/main_user_name"
+                              android:id="@+id/user_name"
                               android:textAppearance="?android:attr/textAppearanceMedium"/>
 
                     <Button android:layout_width="wrap_content"
@@ -83,7 +83,7 @@
                             android:gravity="center"
                             android:padding="2dp"
                             android:layout_marginTop="5dp"
-                            android:layout_below="@+id/main_user_name"
+                            android:layout_below="@+id/user_name"
                             android:layout_height="wrap_content"/>
                 </RelativeLayout>
             </android.support.v7.widget.CardView>
