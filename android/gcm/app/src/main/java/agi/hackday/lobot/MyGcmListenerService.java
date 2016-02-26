@@ -24,6 +24,7 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.google.android.gms.gcm.GcmListenerService;
@@ -85,6 +86,8 @@ public class MyGcmListenerService extends GcmListenerService {
      */
     private void sendNotification(String message, int id) {
         Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra(CloudCity.EXTRA_MESSAGE, message);
+        intent.putExtra(CloudCity.EXTRA_ID, id);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
                 PendingIntent.FLAG_ONE_SHOT);
@@ -103,5 +106,10 @@ public class MyGcmListenerService extends GcmListenerService {
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
+
+        final Intent inAppMessage = new Intent(CloudCity.IN_APP_MESSAGE);
+        inAppMessage.putExtra(CloudCity.EXTRA_MESSAGE, message);
+        inAppMessage.putExtra(CloudCity.EXTRA_ID, id);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(inAppMessage);
     }
 }

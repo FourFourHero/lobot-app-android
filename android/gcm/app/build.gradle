@@ -36,6 +36,7 @@ dependencies {
     compile 'com.android.support:appcompat-v7:23.1.1'
 
     compile 'com.android:volley:1.0'
+    compile 'com.android.support:cardview-v7:23.+'
 
     // Testing dependencies
     androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.1'

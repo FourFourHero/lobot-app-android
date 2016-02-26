@@ -3,9 +3,12 @@
     <string name="gcm_send_message">Token retrieved and sent to server! You can now use gcmsender to
         send downstream messages to this app.</string>
     <string name="registering_message">Initializing...</string>
+    <string name="register">CONNECT</string>
     <string name="enter_user_name">Enter your username</string>
     <string name="token_error_message">An error occurred while either fetching the InstanceID token,
         sending the fetched token to the server or subscribing to the PubSub topic. Please try
         running the sample again.</string>
     <string name="notification_title">Lobot</string>
+    <string name="cloud_city_not_connected">Not connected to Cloud City.</string>
+    <string name="cloud_city_in_progress">Connecting to Cloud City.</string>
 </resources>
