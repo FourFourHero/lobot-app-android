@@ -12,6 +12,8 @@ android {
     defaultConfig {
         applicationId "agi.hackday.lobot"
         minSdkVersion 12
+        // did not target Marshmallow due to runtime permissions
+        // and time constraints
         targetSdkVersion 22
         versionCode 1
         versionName "1.0"
